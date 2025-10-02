@@ -77,7 +77,7 @@ output "s3_bucket_arn" {
 # S3 Endpoint Outputs
 output "s3_endpoint_id" {
   description = "ID of the S3 VPC endpoint"
-  value       = var.create_s3_endpoint_module ? module.s3_endpoint[0].vpc_endpoint_id : null
+  value       = var.create_s3_endpoint_module ? module.s3_endpoint[0].s3_vpc_endpoint_id : null
 }
 
 # SageMaker IAM Role Outputs
