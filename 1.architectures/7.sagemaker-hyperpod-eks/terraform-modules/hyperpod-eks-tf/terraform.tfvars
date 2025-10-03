@@ -58,7 +58,7 @@ node_provisioning_mode = "Continuous"
 # For the instance_groups variable, you'll need to define specific groups. Here's an example:
 instance_groups = {
   instance-group-1 = {
-    instance_type             = "ml.m5.4xlarge"
+    instance_type             = "ml.g5.8xlarge"
     instance_count            = 2
     ebs_volume_size_in_gb     = 100
     threads_per_core          = 2
