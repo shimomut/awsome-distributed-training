@@ -77,7 +77,7 @@ module "s3_endpoint" {
 
   vpc_id                 = local.vpc_id
   private_route_table_id = var.create_private_subnet_module ? module.private_subnet[0].private_route_table_id : var.existing_private_route_table_id
-  private_subnet_ids     = var.create_eks_module ? module.eks_cluster[0].private_subnet_ids : [local.private_subnet_id]
+  private_subnet_ids     = [local.private_subnet_id]
   vpc_endpoint_security_group_id = local.security_group_id
 }
 

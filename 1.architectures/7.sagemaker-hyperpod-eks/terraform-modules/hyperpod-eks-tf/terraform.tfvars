@@ -1,4 +1,4 @@
-resource_name_prefix = "sagemaker-hpeks-closed-2"
+resource_name_prefix = "sagemaker-hpeks-closed-4"
 aws_region           = "us-east-2"
 
 # VPC Module Variables
@@ -22,7 +22,7 @@ existing_security_group_id   = ""
 # EKS Cluster Module Variables
 create_eks_module            = true
 kubernetes_version           = "1.32"
-eks_cluster_name             = "eks-closed-2"
+eks_cluster_name             = "eks-closed-4"
 eks_private_subnet_1_cidr    = "10.192.7.0/28"
 eks_private_subnet_2_cidr    = "10.192.8.0/28"
 eks_private_node_subnet_cidr = "10.192.9.0/24"
@@ -51,7 +51,7 @@ helm_release_name        = "hyperpod-dependencies"
 
 # HyperPod Cluster Module Variables
 create_hyperpod_module = true
-hyperpod_cluster_name  = "hpeks-closed-2"
+hyperpod_cluster_name  = "hpeks-closed-4"
 node_recovery          = "Automatic"
 node_provisioning_mode = "Continuous"
 
