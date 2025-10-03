@@ -1,5 +1,10 @@
-resource_name_prefix = "sagemaker-hpeks-closed-4"
+resource_name_prefix = "sagemaker-hpeks-closed-5"
 aws_region           = "us-east-2"
+
+# Closed Network Configuration
+# Set to true to deploy in closed network mode (no internet gateway, NAT gateways, or EIPs)
+# This is suitable for air-gapped environments or networks with strict security requirements
+closed_network = true
 
 # VPC Module Variables
 create_vpc_module    = true
@@ -22,7 +27,7 @@ existing_security_group_id   = ""
 # EKS Cluster Module Variables
 create_eks_module            = true
 kubernetes_version           = "1.32"
-eks_cluster_name             = "eks-closed-4"
+eks_cluster_name             = "eks-closed-5"
 eks_private_subnet_1_cidr    = "10.192.7.0/28"
 eks_private_subnet_2_cidr    = "10.192.8.0/28"
 eks_private_node_subnet_cidr = "10.192.9.0/24"
@@ -51,7 +56,7 @@ helm_release_name        = "hyperpod-dependencies"
 
 # HyperPod Cluster Module Variables
 create_hyperpod_module = true
-hyperpod_cluster_name  = "hpeks-closed-4"
+hyperpod_cluster_name  = "hpeks-closed-5"
 node_recovery          = "Automatic"
 node_provisioning_mode = "Continuous"
 

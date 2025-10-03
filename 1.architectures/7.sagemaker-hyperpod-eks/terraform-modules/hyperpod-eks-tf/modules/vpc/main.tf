@@ -16,6 +16,7 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_internet_gateway" "main" {
+  count  = var.closed_network ? 0 : 1
   vpc_id = aws_vpc.main.id
 
   tags = merge(
@@ -55,6 +56,7 @@ resource "aws_subnet" "public_2" {
 }
 
 resource "aws_eip" "nat_1" {
+  count  = var.closed_network ? 0 : 1
   domain = "vpc"
 
   depends_on = [aws_internet_gateway.main]
@@ -68,6 +70,7 @@ resource "aws_eip" "nat_1" {
 }
 
 resource "aws_eip" "nat_2" {
+  count  = var.closed_network ? 0 : 1
   domain = "vpc"
 
   depends_on = [aws_internet_gateway.main]
@@ -81,7 +84,8 @@ resource "aws_eip" "nat_2" {
 }
 
 resource "aws_nat_gateway" "nat_1" {
-  allocation_id = aws_eip.nat_1.id
+  count         = var.closed_network ? 0 : 1
+  allocation_id = aws_eip.nat_1[0].id
   subnet_id     = aws_subnet.public_1.id
 
   depends_on = [aws_internet_gateway.main]
@@ -95,7 +99,8 @@ resource "aws_nat_gateway" "nat_1" {
 }
 
 resource "aws_nat_gateway" "nat_2" {
-  allocation_id = aws_eip.nat_2.id
+  count         = var.closed_network ? 0 : 1
+  allocation_id = aws_eip.nat_2[0].id
   subnet_id     = aws_subnet.public_2.id
 
   depends_on = [aws_internet_gateway.main]
@@ -111,9 +116,12 @@ resource "aws_nat_gateway" "nat_2" {
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
+  dynamic "route" {
+    for_each = var.closed_network ? [] : [1]
+    content {
+      cidr_block = "0.0.0.0/0"
+      gateway_id = aws_internet_gateway.main[0].id
+    }
   }
 
   tags = merge(

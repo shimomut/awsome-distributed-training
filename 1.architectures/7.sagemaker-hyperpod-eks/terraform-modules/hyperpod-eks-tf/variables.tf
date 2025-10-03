@@ -17,6 +17,12 @@ variable "create_vpc_module" {
   default     = true
 }
 
+variable "closed_network" {
+  description = "Whether to deploy in closed network mode (no internet gateway, NAT gateways, or EIPs)"
+  type        = bool
+  default     = false
+}
+
 variable "vpc_cidr" {
   description = "The IP range (CIDR notation) for the VPC"
   type        = string

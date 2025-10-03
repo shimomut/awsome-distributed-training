@@ -20,17 +20,17 @@ output "public_subnet_2_id" {
 
 output "nat_gateway_1_id" {
   description = "The ID of the first NAT Gateway"
-  value       = aws_nat_gateway.nat_1.id
+  value       = length(aws_nat_gateway.nat_1) > 0 ? aws_nat_gateway.nat_1[0].id : null
 }
 
 output "nat_gateway_2_id" {
   description = "The ID of the second NAT Gateway"
-  value       = aws_nat_gateway.nat_2.id
+  value       = length(aws_nat_gateway.nat_2) > 0 ? aws_nat_gateway.nat_2[0].id : null
 }
 
 output "internet_gateway_id" {
   description = "The ID of the Internet Gateway"
-  value       = aws_internet_gateway.main.id
+  value       = length(aws_internet_gateway.main) > 0 ? aws_internet_gateway.main[0].id : null
 }
 
 output "public_route_table_id" {
@@ -40,12 +40,12 @@ output "public_route_table_id" {
 
 output "nat_gateway_1_eip" {
   description = "The Elastic IP address of the first NAT Gateway"
-  value       = aws_eip.nat_1.public_ip
+  value       = length(aws_eip.nat_1) > 0 ? aws_eip.nat_1[0].public_ip : null
 }
 
 output "nat_gateway_2_eip" {
   description = "The Elastic IP address of the second NAT Gateway"
-  value       = aws_eip.nat_2.public_ip
+  value       = length(aws_eip.nat_2) > 0 ? aws_eip.nat_2[0].public_ip : null
 }
 
 output "availability_zones" {

@@ -38,4 +38,11 @@ variable "private_node_subnet_cidr" {
 variable "nat_gateway_id" {
   description = "ID of the NAT gateway for the EKS cluster"
   type        = string
+  default     = null
+}
+
+variable "closed_network" {
+  description = "Whether to deploy in closed network mode (no NAT gateway routes)"
+  type        = bool
+  default     = false
 }

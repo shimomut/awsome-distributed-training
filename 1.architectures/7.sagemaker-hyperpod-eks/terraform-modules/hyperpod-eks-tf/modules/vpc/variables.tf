@@ -26,3 +26,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "closed_network" {
+  description = "Whether to deploy in closed network mode (no internet gateway, NAT gateways, or EIPs)"
+  type        = bool
+  default     = false
+}

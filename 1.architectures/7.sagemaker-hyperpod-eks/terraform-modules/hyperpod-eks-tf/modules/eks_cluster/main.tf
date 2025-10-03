@@ -142,6 +142,7 @@ resource "aws_route_table" "private_node" {
 }
 
 resource "aws_route" "private_node_nat" {
+  count                  = var.closed_network || var.nat_gateway_id == null ? 0 : 1
   route_table_id         = aws_route_table.private_node.id
   destination_cidr_block = "0.0.0.0/0"
   nat_gateway_id         = var.nat_gateway_id

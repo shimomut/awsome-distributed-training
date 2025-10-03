@@ -26,6 +26,7 @@ module "vpc" {
   vpc_cidr             = var.vpc_cidr
   public_subnet_1_cidr = var.public_subnet_1_cidr
   public_subnet_2_cidr = var.public_subnet_2_cidr
+  closed_network       = var.closed_network
 }
 
 module "private_subnet" {
@@ -37,6 +38,7 @@ module "private_subnet" {
   availability_zone_id = var.availability_zone_id
   private_subnet_cidr  = var.private_subnet_cidr
   nat_gateway_id       = var.create_vpc_module ? module.vpc[0].nat_gateway_1_id : var.existing_nat_gateway_id
+  closed_network       = var.closed_network
 }
 
 module "security_group" {
@@ -61,6 +63,7 @@ module "eks_cluster" {
   private_subnet_cidrs = [var.eks_private_subnet_1_cidr, var.eks_private_subnet_2_cidr]
   private_node_subnet_cidr = var.eks_private_node_subnet_cidr
   nat_gateway_id       = var.create_vpc_module ? module.vpc[0].nat_gateway_1_id : var.existing_nat_gateway_id
+  closed_network       = var.closed_network
 
 }
 
