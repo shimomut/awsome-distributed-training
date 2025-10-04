@@ -10,12 +10,12 @@ output "vpc_cidr" {
 
 output "public_subnet_1_id" {
   description = "The ID of the first public subnet"
-  value       = aws_subnet.public_1.id
+  value       = length(aws_subnet.public_1) > 0 ? aws_subnet.public_1[0].id : null
 }
 
 output "public_subnet_2_id" {
   description = "The ID of the second public subnet"
-  value       = aws_subnet.public_2.id
+  value       = length(aws_subnet.public_2) > 0 ? aws_subnet.public_2[0].id : null
 }
 
 output "nat_gateway_1_id" {
@@ -35,7 +35,7 @@ output "internet_gateway_id" {
 
 output "public_route_table_id" {
   description = "The ID of the public route table"
-  value       = aws_route_table.public.id
+  value       = length(aws_route_table.public) > 0 ? aws_route_table.public[0].id : null
 }
 
 output "nat_gateway_1_eip" {
@@ -50,5 +50,5 @@ output "nat_gateway_2_eip" {
 
 output "availability_zones" {
   description = "List of availability zones used in the VPC"
-  value       = [aws_subnet.public_1.availability_zone, aws_subnet.public_2.availability_zone]
+  value       = length(aws_subnet.public_1) > 0 && length(aws_subnet.public_2) > 0 ? [aws_subnet.public_1[0].availability_zone, aws_subnet.public_2[0].availability_zone] : data.aws_availability_zones.available.names
 }
