@@ -17,7 +17,7 @@ resource "aws_vpc_endpoint" "s3" {
     ]
   })
 
-  route_table_ids = [var.private_route_table_id]
+  route_table_ids = concat([var.private_route_table_id], var.additional_route_table_ids)
   vpc_endpoint_type = "Gateway"
 }
 

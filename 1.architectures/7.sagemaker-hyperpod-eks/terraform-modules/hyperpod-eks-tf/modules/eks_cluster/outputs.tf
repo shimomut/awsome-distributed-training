@@ -18,7 +18,3 @@ output "eks_cluster_certificate_authority" {
   value       = aws_eks_cluster.cluster.certificate_authority[0].data
 }
 
-output "private_subnet_ids" {
-  description = "IDs of the private subnets"
-  value       = aws_subnet.private[*].id
-}

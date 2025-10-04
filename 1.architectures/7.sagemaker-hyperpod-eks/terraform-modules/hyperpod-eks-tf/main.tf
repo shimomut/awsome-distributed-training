@@ -51,20 +51,32 @@ module "security_group" {
   existing_security_group_id = var.existing_security_group_id
 }
 
+module "eks_subnets" {
+  count  = var.create_eks_module ? 1 : 0
+  source = "./modules/eks_subnets"
+
+  resource_name_prefix     = var.resource_name_prefix
+  vpc_id                   = local.vpc_id
+  eks_cluster_name         = var.eks_cluster_name
+  private_subnet_cidrs     = [var.eks_private_subnet_1_cidr, var.eks_private_subnet_2_cidr]
+  private_node_subnet_cidr = var.eks_private_node_subnet_cidr
+  nat_gateway_id           = var.create_vpc_module ? module.vpc[0].nat_gateway_1_id : var.existing_nat_gateway_id
+  closed_network           = var.closed_network
+}
+
 module "eks_cluster" {
   count  = var.create_eks_module ? 1 : 0
   source = "./modules/eks_cluster"
 
-  resource_name_prefix    = var.resource_name_prefix
-  vpc_id                  = local.vpc_id
-  eks_cluster_name        = var.eks_cluster_name
-  kubernetes_version      = var.kubernetes_version
-  security_group_id       = local.security_group_id
-  private_subnet_cidrs = [var.eks_private_subnet_1_cidr, var.eks_private_subnet_2_cidr]
-  private_node_subnet_cidr = var.eks_private_node_subnet_cidr
-  nat_gateway_id       = var.create_vpc_module ? module.vpc[0].nat_gateway_1_id : var.existing_nat_gateway_id
-  closed_network       = var.closed_network
+  depends_on = [module.eks_subnets]
 
+  resource_name_prefix  = var.resource_name_prefix
+  vpc_id                = local.vpc_id
+  eks_cluster_name      = var.eks_cluster_name
+  kubernetes_version    = var.kubernetes_version
+  security_group_id     = local.security_group_id
+  private_subnet_ids    = module.eks_subnets[0].private_subnet_ids
+  private_node_subnet_id = module.eks_subnets[0].private_node_subnet_id
 }
 
 module "s3_bucket" {
@@ -78,9 +90,12 @@ module "vpc_endpoints" {
   count  = var.create_vpc_endpoints_module ? 1 : 0
   source = "./modules/vpc_endpoints"
 
-  vpc_id                 = local.vpc_id
-  private_route_table_id = var.create_private_subnet_module ? module.private_subnet[0].private_route_table_id : var.existing_private_route_table_id
-  private_subnet_ids     = [local.private_subnet_id]
+  depends_on = [module.eks_subnets]
+
+  vpc_id                     = local.vpc_id
+  private_route_table_id     = var.create_private_subnet_module ? module.private_subnet[0].private_route_table_id : var.existing_private_route_table_id
+  additional_route_table_ids = var.create_eks_module ? [module.eks_subnets[0].private_node_route_table_id] : []
+  private_subnet_ids         = var.create_eks_module ? module.eks_subnets[0].private_subnet_ids : [local.private_subnet_id]
   vpc_endpoint_security_group_id = local.security_group_id
 }
 
@@ -120,6 +135,7 @@ module "hyperpod_cluster" {
   depends_on = [
     module.helm_chart,
     module.eks_cluster,
+    module.eks_subnets,
     module.private_subnet,
     module.security_group,
     module.s3_bucket,

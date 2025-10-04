@@ -1,27 +1,6 @@
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-data "aws_vpc" "selected" {
-  id = var.vpc_id
-}
-
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-resource "aws_subnet" "private" {
-  count             = length(var.private_subnet_cidrs)
-  vpc_id            = data.aws_vpc.selected.id
-  cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
-
-  tags = {
-    Name = "${var.resource_name_prefix}-private-subnet-${count.index + 1}"
-    "kubernetes.io/role/internal-elb" = "1"
-    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
-  }
-}
-
 resource "aws_iam_role" "eks_cluster_role" {
   name = "${var.resource_name_prefix}-cluster-role"
 
@@ -56,7 +35,7 @@ resource "aws_eks_cluster" "cluster" {
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
-    subnet_ids              = aws_subnet.private[*].id
+    subnet_ids              = var.private_subnet_ids
     security_group_ids      = [var.security_group_id]
     endpoint_private_access = true
     endpoint_public_access  = true
@@ -77,8 +56,7 @@ resource "aws_eks_cluster" "cluster" {
 
   depends_on = [
     aws_cloudwatch_log_group.eks_cluster,
-    aws_iam_role_policy_attachment.cluster_policy,
-    aws_subnet.private
+    aws_iam_role_policy_attachment.cluster_policy
   ]
 }
 
@@ -118,40 +96,7 @@ resource "aws_iam_role_policy_attachment" "eks_cni_policy" {
   role       = aws_iam_role.eks_node_role.name
 }
 
-# New subnet for node groups
-resource "aws_subnet" "private_node" {
-  vpc_id            = data.aws_vpc.selected.id
-  # Use a larger CIDR block, e.g., /24
-  cidr_block        = var.private_node_subnet_cidr
-  availability_zone = data.aws_availability_zones.available.names[0]
-  
-  tags = {
-    Name = "${var.resource_name_prefix}-private-nodes-subnet-1"
-    "kubernetes.io/role/internal-elb" = "1"
-    "kubernetes.io/cluster/${var.eks_cluster_name}" = "shared"
-  }
-}
 
-# Route table for node group subnets
-resource "aws_route_table" "private_node" {
-  vpc_id = data.aws_vpc.selected.id
-
-  tags = {
-    Name = "${var.resource_name_prefix}-private-nodes-rt"
-  }
-}
-
-resource "aws_route" "private_node_nat" {
-  count                  = var.closed_network || var.nat_gateway_id == null ? 0 : 1
-  route_table_id         = aws_route_table.private_node.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = var.nat_gateway_id
-}
-
-resource "aws_route_table_association" "private_node" { 
-  subnet_id      = aws_subnet.private_node.id
-  route_table_id = aws_route_table.private_node.id
-}
 
 resource "aws_launch_template" "eks_node" {
   name = "${var.resource_name_prefix}-node-template"
@@ -162,7 +107,7 @@ resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = "${var.resource_name_prefix}-private-node-group"
   node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids      = [aws_subnet.private_node.id]
+  subnet_ids      = [var.private_node_subnet_id]
   instance_types  = ["t3.small"]
 
   launch_template {

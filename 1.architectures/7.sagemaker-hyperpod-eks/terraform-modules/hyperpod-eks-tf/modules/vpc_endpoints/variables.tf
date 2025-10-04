@@ -8,6 +8,12 @@ variable "private_route_table_id" {
   type        = string
 }
 
+variable "additional_route_table_ids" {
+  description = "Additional route table IDs for gateway endpoints (e.g., EKS node route tables)"
+  type        = list(string)
+  default     = []
+}
+
 variable "private_subnet_ids" {
   description = "List of private subnet IDs for interface endpoints"
   type        = list(string)

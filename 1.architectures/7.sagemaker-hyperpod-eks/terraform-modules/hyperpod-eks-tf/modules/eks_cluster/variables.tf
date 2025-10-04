@@ -25,24 +25,12 @@ variable "security_group_id" {
   type        = string
 }
 
-variable "private_subnet_cidrs" {
-  description = "CIDR blocks for private subnets"
+variable "private_subnet_ids" {
+  description = "IDs of the private subnets for EKS control plane"
   type        = list(string)
 }
 
-variable "private_node_subnet_cidr" {
-  description = "CIDR blocks for private subnets for nodes"
+variable "private_node_subnet_id" {
+  description = "ID of the private subnet for EKS node groups"
   type        = string
-}
-
-variable "nat_gateway_id" {
-  description = "ID of the NAT gateway for the EKS cluster"
-  type        = string
-  default     = null
-}
-
-variable "closed_network" {
-  description = "Whether to deploy in closed network mode (no NAT gateway routes)"
-  type        = bool
-  default     = false
 }
