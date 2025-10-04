@@ -187,6 +187,12 @@ variable "create_helm_chart_module" {
   default     = true
 }
 
+variable "helm_repo_base_path" {
+  description = "The base path to the Helm repository directory"
+  type        = string
+  default     = null
+}
+
 variable "helm_repo_path" {
   description = "The path to the HyperPod Helm chart"
   type        = string

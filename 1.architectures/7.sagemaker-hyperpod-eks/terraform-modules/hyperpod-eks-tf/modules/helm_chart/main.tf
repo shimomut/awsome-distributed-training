@@ -10,7 +10,7 @@ data "aws_eks_cluster_auth" "cluster" {
 
 resource "helm_release" "hyperpod" {
   name       = var.helm_release_name
-  chart      = "/tmp/helm-repo/${var.helm_repo_path}"
+  chart      = "${var.helm_repo_base_path}/${var.helm_repo_path}"
   namespace  = var.namespace
   dependency_update = true
   set = [

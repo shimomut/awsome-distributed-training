@@ -8,6 +8,12 @@ variable "eks_cluster_name" {
   type        = string
 }
 
+variable "helm_repo_base_path" {
+  description = "The base path to the Helm repository directory"
+  type        = string
+  default     = null
+}
+
 variable "helm_repo_path" {
   description = "The path to the HyperPod Helm chart in the Helm repo"
   type        = string

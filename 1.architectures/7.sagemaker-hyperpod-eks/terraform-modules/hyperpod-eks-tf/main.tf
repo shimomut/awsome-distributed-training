@@ -122,6 +122,7 @@ module "helm_chart" {
   depends_on = [module.eks_cluster]
 
   resource_name_prefix = var.resource_name_prefix
+  helm_repo_base_path = var.helm_repo_base_path
   helm_repo_path      = var.helm_repo_path
   namespace           = var.namespace
   helm_release_name   = var.helm_release_name
