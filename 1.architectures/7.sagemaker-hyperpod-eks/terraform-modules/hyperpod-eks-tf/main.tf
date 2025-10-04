@@ -74,9 +74,9 @@ module "s3_bucket" {
   resource_name_prefix = var.resource_name_prefix
 }
 
-module "s3_endpoint" {
-  count  = var.create_s3_endpoint_module ? 1 : 0
-  source = "./modules/s3_endpoint"
+module "vpc_endpoints" {
+  count  = var.create_vpc_endpoints_module ? 1 : 0
+  source = "./modules/vpc_endpoints"
 
   vpc_id                 = local.vpc_id
   private_route_table_id = var.create_private_subnet_module ? module.private_subnet[0].private_route_table_id : var.existing_private_route_table_id
@@ -123,7 +123,7 @@ module "hyperpod_cluster" {
     module.private_subnet,
     module.security_group,
     module.s3_bucket,
-    module.s3_endpoint,
+    module.vpc_endpoints,
     module.sagemaker_iam_role
   ]
 
