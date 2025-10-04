@@ -34,3 +34,9 @@ variable "private_node_subnet_id" {
   description = "ID of the private subnet for EKS node groups"
   type        = string
 }
+
+variable "closed_network" {
+  description = "Whether the cluster is deployed in a closed network environment"
+  type        = bool
+  default     = false
+}
