@@ -116,22 +116,43 @@ variable "existing_eks_cluster_name" {
   default     = ""
 }
 
-variable "eks_private_subnet_1_cidr" {
-  description = "The IP range (CIDR notation) for the first EKS private subnet"
-  type        = string
-  default     = "10.192.7.0/28"
+variable "eks_availability_zones" {
+  description = "List of availability zone IDs for EKS cluster subnets (e.g., ['use2-az1', 'use2-az2'])"
+  type        = list(string)
+  default     = []
+  validation {
+    condition     = length(var.eks_availability_zones) >= 2
+    error_message = "At least 2 availability zones must be specified for EKS cluster."
+  }
 }
 
-variable "eks_private_subnet_2_cidr" {
-  description = "The IP range (CIDR notation) for the second EKS private subnet"
-  type        = string
-  default     = "10.192.8.0/28"
+variable "eks_private_subnet_cidrs" {
+  description = "List of IP ranges (CIDR notation) for EKS private subnets. Must match the number of availability zones."
+  type        = list(string)
+  default     = ["10.192.7.0/28", "10.192.8.0/28"]
+  validation {
+    condition     = length(var.eks_private_subnet_cidrs) >= 2
+    error_message = "At least 2 CIDR blocks must be specified for EKS private subnets."
+  }
 }
 
 variable "eks_private_node_subnet_cidr" {
   description = "The IP range (CIDR notation) for the EKS private node subnet"
   type        = string
   default     = "10.192.9.0/24"
+}
+
+# Deprecated variables - kept for backward compatibility
+variable "eks_private_subnet_1_cidr" {
+  description = "DEPRECATED: Use eks_private_subnet_cidrs instead. The IP range (CIDR notation) for the first EKS private subnet"
+  type        = string
+  default     = ""
+}
+
+variable "eks_private_subnet_2_cidr" {
+  description = "DEPRECATED: Use eks_private_subnet_cidrs instead. The IP range (CIDR notation) for the second EKS private subnet"
+  type        = string
+  default     = ""
 }
 
 # S3 Bucket Module Variables

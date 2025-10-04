@@ -19,6 +19,12 @@ variable "private_subnet_cidrs" {
   type        = list(string)
 }
 
+variable "availability_zones" {
+  description = "List of availability zone IDs for EKS subnets"
+  type        = list(string)
+  default     = []
+}
+
 variable "private_node_subnet_cidr" {
   description = "CIDR blocks for private subnets for nodes"
   type        = string

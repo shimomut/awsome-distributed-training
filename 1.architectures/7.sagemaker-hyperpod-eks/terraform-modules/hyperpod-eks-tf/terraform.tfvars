@@ -15,7 +15,9 @@ existing_vpc_id      = ""
 
 # Private Subnet Module Variables
 create_private_subnet_module = true
-availability_zone_id         = "use2-az2"
+# IMPORTANT: This availability zone MUST be included in eks_availability_zones above
+# to ensure VPC endpoints are accessible from HyperPod instances
+availability_zone_id         = "use2-az2"  # Must match one of the EKS AZs
 private_subnet_cidr          = "10.1.0.0/16"
 existing_nat_gateway_id      = ""
 existing_private_subnet_id   = ""
@@ -28,9 +30,14 @@ existing_security_group_id   = ""
 create_eks_module            = true
 kubernetes_version           = "1.32"
 eks_cluster_name             = "eks-closed-8"
-eks_private_subnet_1_cidr    = "10.192.7.0/28"
-eks_private_subnet_2_cidr    = "10.192.8.0/28"
+
+# EKS Availability Zones and Subnets Configuration
+# Specify the exact availability zones for EKS cluster subnets
+eks_availability_zones       = ["use2-az1", "use2-az2"]
+# Specify the CIDR blocks for EKS private subnets (must match number of AZs)
+eks_private_subnet_cidrs     = ["10.192.7.0/24", "10.192.8.0/24"]
 eks_private_node_subnet_cidr = "10.192.9.0/24"
+
 existing_eks_cluster_name    = ""
 
 # S3 Bucket Module Variables

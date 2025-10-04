@@ -9,12 +9,19 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+# Convert availability zone IDs to names for subnet creation
+data "aws_availability_zone" "selected" {
+  count   = length(var.availability_zones) > 0 ? length(var.availability_zones) : length(var.private_subnet_cidrs)
+  zone_id = length(var.availability_zones) > 0 ? var.availability_zones[count.index] : null
+  name    = length(var.availability_zones) == 0 ? data.aws_availability_zones.available.names[count.index] : null
+}
+
 # EKS control plane subnets
 resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
   vpc_id            = data.aws_vpc.selected.id
   cidr_block        = var.private_subnet_cidrs[count.index]
-  availability_zone = data.aws_availability_zones.available.names[count.index]
+  availability_zone = length(var.availability_zones) > 0 ? data.aws_availability_zone.selected[count.index].name : data.aws_availability_zones.available.names[count.index]
 
   tags = {
     Name = "${var.resource_name_prefix}-private-subnet-${count.index + 1}"
@@ -27,7 +34,7 @@ resource "aws_subnet" "private" {
 resource "aws_subnet" "private_node" {
   vpc_id            = data.aws_vpc.selected.id
   cidr_block        = var.private_node_subnet_cidr
-  availability_zone = data.aws_availability_zones.available.names[0]
+  availability_zone = length(var.availability_zones) > 0 ? data.aws_availability_zone.selected[0].name : data.aws_availability_zones.available.names[0]
   
   tags = {
     Name = "${var.resource_name_prefix}-private-nodes-subnet-1"
