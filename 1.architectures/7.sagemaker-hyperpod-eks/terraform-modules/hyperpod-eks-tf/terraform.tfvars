@@ -4,7 +4,7 @@ aws_region           = "us-east-2"
 # Closed Network Configuration
 # Set to true to deploy in closed network mode (no internet gateway, NAT gateways, or EIPs)
 # This is suitable for air-gapped environments or networks with strict security requirements
-closed_network = false
+closed_network = true
 
 # VPC Module Variables
 create_vpc_module    = true
