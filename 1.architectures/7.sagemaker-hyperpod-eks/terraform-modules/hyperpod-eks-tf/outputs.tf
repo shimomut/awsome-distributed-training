@@ -44,17 +44,17 @@ output "security_group_id" {
 # EKS Subnets Outputs
 output "eks_private_subnet_ids" {
   description = "IDs of the EKS private subnets"
-  value       = var.create_eks_module ? module.eks_subnets[0].private_subnet_ids : null
+  value       = var.create_eks_subnets_module ? module.eks_subnets[0].private_subnet_ids : var.existing_eks_private_subnet_ids
 }
 
 output "eks_private_node_subnet_id" {
   description = "ID of the EKS private node subnet"
-  value       = var.create_eks_module ? module.eks_subnets[0].private_node_subnet_id : null
+  value       = var.create_eks_subnets_module ? module.eks_subnets[0].private_node_subnet_id : var.existing_eks_private_node_subnet_id
 }
 
 output "eks_private_node_route_table_id" {
   description = "ID of the EKS private node route table"
-  value       = var.create_eks_module ? module.eks_subnets[0].private_node_route_table_id : null
+  value       = var.create_eks_subnets_module ? module.eks_subnets[0].private_node_route_table_id : var.existing_eks_private_node_route_table_id
 }
 
 # EKS Cluster Outputs

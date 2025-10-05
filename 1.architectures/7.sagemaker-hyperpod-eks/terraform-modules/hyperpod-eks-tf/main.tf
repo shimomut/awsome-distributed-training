@@ -17,6 +17,11 @@ locals {
   sagemaker_iam_role_name = var.create_sagemaker_iam_role_module ? module.sagemaker_iam_role[0].sagemaker_iam_role_name : var.existing_sagemaker_iam_role_name
   deploy_hyperpod = var.create_hyperpod_module && !(var.create_eks_module && !var.create_helm_chart_module)
   
+  # EKS subnets configuration
+  eks_private_subnet_ids = var.create_eks_subnets_module ? module.eks_subnets[0].private_subnet_ids : var.existing_eks_private_subnet_ids
+  eks_private_node_subnet_id = var.create_eks_subnets_module ? module.eks_subnets[0].private_node_subnet_id : var.existing_eks_private_node_subnet_id
+  eks_private_node_route_table_id = var.create_eks_subnets_module ? module.eks_subnets[0].private_node_route_table_id : var.existing_eks_private_node_route_table_id
+  
   # Handle backward compatibility for EKS subnet CIDRs
   eks_private_subnet_cidrs = length(var.eks_private_subnet_cidrs) > 0 ? var.eks_private_subnet_cidrs : [
     var.eks_private_subnet_1_cidr != "" ? var.eks_private_subnet_1_cidr : "10.192.7.0/28",
@@ -26,7 +31,7 @@ locals {
 
 # Validation: Ensure HyperPod AZ is included in EKS AZs when both modules are created
 resource "null_resource" "validate_availability_zones" {
-  count = var.create_eks_module && var.create_private_subnet_module && length(var.eks_availability_zones) > 0 ? 1 : 0
+  count = var.create_eks_subnets_module && var.create_private_subnet_module && length(var.eks_availability_zones) > 0 ? 1 : 0
   
   lifecycle {
     precondition {
@@ -75,7 +80,7 @@ module "security_group" {
 }
 
 module "eks_subnets" {
-  count  = var.create_eks_module ? 1 : 0
+  count  = var.create_eks_subnets_module ? 1 : 0
   source = "./modules/eks_subnets"
 
   resource_name_prefix     = var.resource_name_prefix
@@ -94,13 +99,13 @@ module "eks_cluster" {
 
   depends_on = [module.eks_subnets]
 
-  resource_name_prefix  = var.resource_name_prefix
-  vpc_id                = local.vpc_id
-  eks_cluster_name      = var.eks_cluster_name
-  kubernetes_version    = var.kubernetes_version
-  security_group_id     = local.security_group_id
-  private_subnet_ids    = module.eks_subnets[0].private_subnet_ids
-  private_node_subnet_id = module.eks_subnets[0].private_node_subnet_id
+  resource_name_prefix   = var.resource_name_prefix
+  vpc_id                 = local.vpc_id
+  eks_cluster_name       = var.eks_cluster_name
+  kubernetes_version     = var.kubernetes_version
+  security_group_id      = local.security_group_id
+  private_subnet_ids     = local.eks_private_subnet_ids
+  private_node_subnet_id = local.eks_private_node_subnet_id
 }
 
 module "s3_bucket" {
@@ -116,10 +121,10 @@ module "vpc_endpoints" {
 
   depends_on = [module.eks_subnets]
 
-  vpc_id                     = local.vpc_id
-  private_route_table_id     = var.create_private_subnet_module ? module.private_subnet[0].private_route_table_id : var.existing_private_route_table_id
-  additional_route_table_ids = var.create_eks_module ? [module.eks_subnets[0].private_node_route_table_id] : []
-  private_subnet_ids         = var.create_eks_module ? module.eks_subnets[0].private_subnet_ids : [local.private_subnet_id]
+  vpc_id                         = local.vpc_id
+  private_route_table_id         = var.create_private_subnet_module ? module.private_subnet[0].private_route_table_id : var.existing_private_route_table_id
+  additional_route_table_ids     = (var.create_eks_module || !var.create_eks_subnets_module) ? [local.eks_private_node_route_table_id] : []
+  private_subnet_ids             = (var.create_eks_module || !var.create_eks_subnets_module) ? local.eks_private_subnet_ids : [local.private_subnet_id]
   vpc_endpoint_security_group_id = local.security_group_id
 }
 

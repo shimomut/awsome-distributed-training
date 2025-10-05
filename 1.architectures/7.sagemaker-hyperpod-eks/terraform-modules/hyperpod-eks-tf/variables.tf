@@ -98,6 +98,12 @@ variable "create_eks_module" {
   default     = true
 }
 
+variable "create_eks_subnets_module" {
+  description = "Whether to create EKS subnets module"
+  type        = bool
+  default     = true
+}
+
 variable "kubernetes_version" {
   description = "The Kubernetes version to use for the EKS cluster"
   type        = string
@@ -112,6 +118,24 @@ variable "eks_cluster_name" {
 
 variable "existing_eks_cluster_name" {
   description = "The name of an existing EKS cluster"
+  type        = string
+  default     = ""
+}
+
+variable "existing_eks_private_subnet_ids" {
+  description = "List of existing EKS private subnet IDs for control plane"
+  type        = list(string)
+  default     = []
+}
+
+variable "existing_eks_private_node_subnet_id" {
+  description = "The ID of an existing EKS private node subnet"
+  type        = string
+  default     = ""
+}
+
+variable "existing_eks_private_node_route_table_id" {
+  description = "The ID of an existing EKS private node route table"
   type        = string
   default     = ""
 }

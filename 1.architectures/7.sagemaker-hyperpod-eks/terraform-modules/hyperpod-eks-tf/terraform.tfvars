@@ -28,6 +28,7 @@ existing_security_group_id   = ""
 
 # EKS Cluster Module Variables
 create_eks_module            = true
+create_eks_subnets_module    = true
 kubernetes_version           = "1.32"
 eks_cluster_name             = "eks-closed-8"
 
@@ -38,7 +39,10 @@ eks_availability_zones       = ["use2-az1", "use2-az2"]
 eks_private_subnet_cidrs     = ["10.192.7.0/24", "10.192.8.0/24"]
 eks_private_node_subnet_cidr = "10.192.9.0/24"
 
-existing_eks_cluster_name    = ""
+existing_eks_cluster_name              = ""
+existing_eks_private_subnet_ids        = []
+existing_eks_private_node_subnet_id    = ""
+existing_eks_private_node_route_table_id = ""
 
 # S3 Bucket Module Variables
 create_s3_bucket_module = true
