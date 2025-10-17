@@ -140,13 +140,19 @@ variable "existing_eks_private_node_route_table_id" {
   default     = ""
 }
 
-variable "eks_availability_zones" {
+variable "eks_availability_zone_ids" {
   description = "List of availability zone IDs for EKS cluster subnets (e.g., ['use2-az1', 'use2-az2'])"
   type        = list(string)
   default     = []
   validation {
-    condition     = length(var.eks_availability_zones) >= 2
-    error_message = "At least 2 availability zones must be specified for EKS cluster."
+    condition     = length(var.eks_availability_zone_ids) >= 2
+    error_message = "At least 2 availability zone IDs must be specified for EKS cluster."
+  }
+  validation {
+    condition = alltrue([
+      for az_id in var.eks_availability_zone_ids : can(regex("^[a-z0-9]+-az[0-9]+$", az_id))
+    ])
+    error_message = "All availability zone IDs must be in the format 'region-az#' (e.g., 'use2-az1')."
   }
 }
 

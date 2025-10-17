@@ -31,17 +31,17 @@ locals {
 
 # Validation: Ensure HyperPod AZ is included in EKS AZs when both modules are created
 resource "null_resource" "validate_availability_zones" {
-  count = var.create_eks_subnets_module && var.create_private_subnet_module && length(var.eks_availability_zones) > 0 ? 1 : 0
+  count = var.create_eks_subnets_module && var.create_private_subnet_module && length(var.eks_availability_zone_ids) > 0 ? 1 : 0
   
   lifecycle {
     precondition {
-      condition = contains(var.eks_availability_zones, var.availability_zone_id)
-      error_message = "The HyperPod private subnet availability zone '${var.availability_zone_id}' must be included in the EKS cluster availability zones: [${join(", ", var.eks_availability_zones)}]. This ensures VPC endpoints created in EKS subnets are accessible from HyperPod instances."
+      condition = contains(var.eks_availability_zone_ids, var.availability_zone_id)
+      error_message = "The HyperPod private subnet availability zone ID '${var.availability_zone_id}' must be included in the EKS cluster availability zone IDs: [${join(", ", var.eks_availability_zone_ids)}]. This ensures VPC endpoints created in EKS subnets are accessible from HyperPod instances."
     }
     
     precondition {
-      condition = length(var.eks_availability_zones) == length(local.eks_private_subnet_cidrs)
-      error_message = "The number of EKS availability zones (${length(var.eks_availability_zones)}) must match the number of EKS private subnet CIDRs (${length(local.eks_private_subnet_cidrs)})."
+      condition = length(var.eks_availability_zone_ids) == length(local.eks_private_subnet_cidrs)
+      error_message = "The number of EKS availability zone IDs (${length(var.eks_availability_zone_ids)}) must match the number of EKS private subnet CIDRs (${length(local.eks_private_subnet_cidrs)})."
     }
   }
 }
@@ -87,7 +87,7 @@ module "eks_subnets" {
   vpc_id                   = local.vpc_id
   eks_cluster_name         = var.eks_cluster_name
   private_subnet_cidrs     = local.eks_private_subnet_cidrs
-  availability_zones       = var.eks_availability_zones
+  availability_zones       = var.eks_availability_zone_ids
   private_node_subnet_cidr = var.eks_private_node_subnet_cidr
   nat_gateway_id           = var.create_vpc_module ? module.vpc[0].nat_gateway_1_id : var.existing_nat_gateway_id
   closed_network           = var.closed_network

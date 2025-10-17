@@ -33,8 +33,8 @@ kubernetes_version           = "1.32"
 eks_cluster_name             = "eks-closed-8"
 
 # EKS Availability Zones and Subnets Configuration
-# Specify the exact availability zones for EKS cluster subnets
-eks_availability_zones       = ["use2-az1", "use2-az2"]
+# Specify the exact availability zone IDs for EKS cluster subnets
+eks_availability_zone_ids    = ["use2-az1", "use2-az2"]
 # Specify the CIDR blocks for EKS private subnets (must match number of AZs)
 eks_private_subnet_cidrs     = ["10.192.7.0/24", "10.192.8.0/24"]
 eks_private_node_subnet_cidr = "10.192.9.0/24"
