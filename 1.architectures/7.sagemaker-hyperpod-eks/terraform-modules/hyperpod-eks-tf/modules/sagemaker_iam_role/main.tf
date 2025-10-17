@@ -102,9 +102,6 @@ resource "aws_iam_policy" "sagemaker_kms_policy" {
         Effect = "Allow"
         Action = [
           "kms:Decrypt",
-          "kms:Encrypt",
-          "kms:ReEncrypt*",
-          "kms:GenerateDataKey*",
           "kms:DescribeKey"
         ]
         Resource = var.kms_key_arn
