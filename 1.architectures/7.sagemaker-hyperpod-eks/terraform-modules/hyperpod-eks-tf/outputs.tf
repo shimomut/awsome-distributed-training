@@ -107,6 +107,11 @@ output "sagemaker_iam_role_name" {
   value       = var.create_sagemaker_iam_role_module ? module.sagemaker_iam_role[0].sagemaker_iam_role_name : var.existing_sagemaker_iam_role_name
 }
 
+output "sagemaker_kms_policy_arn" {
+  description = "ARN of the KMS policy attached to the SageMaker IAM role (if KMS key ARN was provided)"
+  value       = var.create_sagemaker_iam_role_module ? module.sagemaker_iam_role[0].sagemaker_kms_policy_arn : null
+}
+
 # Helm Chart Outputs
 output "helm_release_name" {
   description = "Name of the Helm release"

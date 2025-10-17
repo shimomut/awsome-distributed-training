@@ -142,6 +142,7 @@ module "sagemaker_iam_role" {
 
   resource_name_prefix = var.resource_name_prefix
   s3_bucket_name       = local.s3_bucket_name
+  kms_key_arn          = var.kms_key_arn
 }
 
 module "helm_chart" {

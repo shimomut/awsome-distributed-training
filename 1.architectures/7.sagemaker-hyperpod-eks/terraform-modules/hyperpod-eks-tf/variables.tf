@@ -225,6 +225,12 @@ variable "existing_sagemaker_iam_role_name" {
   default     = ""
 }
 
+variable "kms_key_arn" {
+  description = "The ARN of the KMS key for encryption/decryption operations. Format: arn:aws:kms:region:account-id:key/key-id"
+  type        = string
+  default     = ""
+}
+
 # Helm Chart Module Variables
 variable "create_helm_chart_module" {
   description = "Whether to create Helm chart module"

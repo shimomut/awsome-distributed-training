@@ -13,3 +13,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "kms_key_arn" {
+  description = "The ARN of the KMS key for encryption/decryption operations. If not provided, KMS permissions will not be added."
+  type        = string
+  default     = ""
+}

@@ -53,6 +53,13 @@ create_lifecycle_script_module = true
 create_sagemaker_iam_role_module = true
 existing_sagemaker_iam_role_name = ""
 
+# KMS Key Configuration (Optional)
+# Provide the ARN of your KMS key to grant HyperPod instances encryption/decryption permissions
+# Format: arn:aws:kms:region:account-id:key/key-id
+# Example: arn:aws:kms:us-east-2:123456789012:key/12345678-1234-1234-1234-123456789012
+# Leave empty ("") if no KMS permissions are needed
+kms_key_arn = ""
+
 # Helm Chart Module Variables
 create_helm_chart_module = true
 helm_repo_base_path      = "../../../../../sagemaker-hyperpod-cli"

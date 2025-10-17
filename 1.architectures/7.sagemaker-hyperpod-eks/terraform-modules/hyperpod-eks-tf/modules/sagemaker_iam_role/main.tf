@@ -89,6 +89,39 @@ resource "aws_iam_policy" "sagemaker_execution_policy" {
   tags = var.tags
 }
 
+# Additional KMS policy (only created if KMS key ARN is provided)
+resource "aws_iam_policy" "sagemaker_kms_policy" {
+  count = var.kms_key_arn != "" ? 1 : 0
+  name  = "${var.resource_name_prefix}-KMSPolicy-${data.aws_region.current.id}"
+  path  = "/"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:Encrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey"
+        ]
+        Resource = var.kms_key_arn
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+# Attach KMS policy to role (only if KMS key ARN is provided)
+resource "aws_iam_role_policy_attachment" "sagemaker_kms_policy_attachment" {
+  count      = var.kms_key_arn != "" ? 1 : 0
+  role       = aws_iam_role.sagemaker_execution_role.name
+  policy_arn = aws_iam_policy.sagemaker_kms_policy[0].arn
+}
+
 # Attach custom policy to role
 resource "aws_iam_role_policy_attachment" "sagemaker_execution_policy_attachment" {
   role       = aws_iam_role.sagemaker_execution_role.name
