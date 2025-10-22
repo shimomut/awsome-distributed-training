@@ -98,17 +98,22 @@ locals {
     ]) > 0
   )
   
-  # Check for broad VPC egress rules (generalized for all VPC CIDRs)
+  # Check for specific VPC egress rules (HTTPS, DNS, NTP, kubelet)
   # This prevents duplicate rule creation by detecting if existing security group
-  # already has the VPC CIDR egress rules we want to create
+  # already has the specific protocol/port VPC CIDR egress rules we want to create
   has_vpc_egress_rules = var.create_new_sg ? false : (
-    # Count existing rules that match our VPC CIDR criteria
+    # Count existing rules that match our specific protocol/port criteria for each VPC CIDR
     length([
       for r in local.rules : r
       if r.rule.is_egress &&                    # Only outbound rules
-         r.rule.ip_protocol == "-1" &&          # All protocols
-         r.rule.from_port == -1 &&              # All ports (from)
-         r.rule.to_port == -1 &&                # All ports (to)
+         # Check for specific protocols and ports we need
+         (
+           (r.rule.ip_protocol == "tcp" && r.rule.from_port == 443 && r.rule.to_port == 443) ||   # HTTPS
+           (r.rule.ip_protocol == "tcp" && r.rule.from_port == 53 && r.rule.to_port == 53) ||     # DNS TCP
+           (r.rule.ip_protocol == "udp" && r.rule.from_port == 53 && r.rule.to_port == 53) ||     # DNS UDP
+           (r.rule.ip_protocol == "udp" && r.rule.from_port == 123 && r.rule.to_port == 123) ||   # NTP
+           (r.rule.ip_protocol == "tcp" && r.rule.from_port == 10250 && r.rule.to_port == 10250)  # kubelet
+         ) &&
          # Check if rule's CIDR matches any of our VPC CIDRs
          contains(
            # Create list of all VPC CIDRs (primary + additional)
@@ -116,9 +121,8 @@ locals {
            r.rule.cidr_ipv4
          )
     ]) >= 
-    # Compare against total number of VPC CIDRs
-    # If we have rules for ALL VPC CIDRs, return true (rules exist)
-    length(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block))
+    # We need 5 rules per VPC CIDR (HTTPS, DNS TCP, DNS UDP, NTP, kubelet)
+    (5 * length(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)))
   )
 }
 
@@ -159,22 +163,66 @@ resource "aws_vpc_security_group_egress_rule" "intra_sg_egress" {
   referenced_security_group_id = local.security_group_id
 }
 
-# Generalized VPC egress rules for all VPC CIDR blocks
-# Creates one egress rule per VPC CIDR block (primary + additional CIDRs)
-# Only creates rules if: creating new SG OR existing SG doesn't have these rules
-resource "aws_vpc_security_group_egress_rule" "vpc_cidrs" {
-  # Dynamic for_each: creates rules for all VPC CIDRs or empty set if rules exist
-  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? 
-    # Create list of all VPC CIDRs (primary + additional)
-    toset(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)) : 
-    # Empty set - don't create any rules (they already exist)
-    toset([])
+# Specific VPC egress rules for EKS required protocols and ports
+# Creates targeted rules instead of broad "allow all" for better security
+
+# HTTPS egress to VPC CIDRs (for EKS API, VPC endpoints)
+resource "aws_vpc_security_group_egress_rule" "vpc_https" {
+  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? toset(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)) : toset([])
   
-  description       = "Allow all egress traffic to VPC CIDR ${each.value}"
-  from_port         = -1          # All ports
-  to_port           = -1          # All ports  
-  ip_protocol       = "-1"        # All protocols
-  cidr_ipv4         = each.value  # Current VPC CIDR from for_each
+  description       = "Allow HTTPS egress to VPC CIDR ${each.value}"
+  from_port         = 443         # HTTPS
+  to_port           = 443         # HTTPS
+  ip_protocol       = "tcp"       # TCP protocol
+  cidr_ipv4         = each.value  # Current VPC CIDR
+  security_group_id = local.security_group_id
+}
+
+# DNS TCP egress to VPC CIDRs (for name resolution)
+resource "aws_vpc_security_group_egress_rule" "vpc_dns_tcp" {
+  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? toset(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)) : toset([])
+  
+  description       = "Allow DNS TCP egress to VPC CIDR ${each.value}"
+  from_port         = 53          # DNS
+  to_port           = 53          # DNS
+  ip_protocol       = "tcp"       # TCP protocol
+  cidr_ipv4         = each.value  # Current VPC CIDR
+  security_group_id = local.security_group_id
+}
+
+# DNS UDP egress to VPC CIDRs (for name resolution)
+resource "aws_vpc_security_group_egress_rule" "vpc_dns_udp" {
+  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? toset(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)) : toset([])
+  
+  description       = "Allow DNS UDP egress to VPC CIDR ${each.value}"
+  from_port         = 53          # DNS
+  to_port           = 53          # DNS
+  ip_protocol       = "udp"       # UDP protocol
+  cidr_ipv4         = each.value  # Current VPC CIDR
+  security_group_id = local.security_group_id
+}
+
+# NTP egress to VPC CIDRs (for time synchronization)
+resource "aws_vpc_security_group_egress_rule" "vpc_ntp" {
+  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? toset(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)) : toset([])
+  
+  description       = "Allow NTP egress to VPC CIDR ${each.value}"
+  from_port         = 123         # NTP
+  to_port           = 123         # NTP
+  ip_protocol       = "udp"       # UDP protocol
+  cidr_ipv4         = each.value  # Current VPC CIDR
+  security_group_id = local.security_group_id
+}
+
+# Kubelet API egress to VPC CIDRs (for EKS node communication)
+resource "aws_vpc_security_group_egress_rule" "vpc_kubelet" {
+  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? toset(concat([data.aws_vpc.selected.cidr_block], data.aws_vpc.selected.cidr_block_associations[*].cidr_block)) : toset([])
+  
+  description       = "Allow kubelet API egress to VPC CIDR ${each.value}"
+  from_port         = 10250       # kubelet API
+  to_port           = 10250       # kubelet API
+  ip_protocol       = "tcp"       # TCP protocol
+  cidr_ipv4         = each.value  # Current VPC CIDR
   security_group_id = local.security_group_id
 }
 
@@ -183,9 +231,7 @@ resource "aws_vpc_security_group_egress_rule" "vpc_cidrs" {
 # This resolves ImagePullBackOff errors in closed network environments
 resource "aws_vpc_security_group_egress_rule" "s3_https" {
   # Create rules for all S3 IP ranges in current region, or empty set if VPC rules exist
-  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? 
-    toset(data.aws_ip_ranges.s3.cidr_blocks) : 
-    toset([])
+  for_each = var.create_new_sg || !local.has_vpc_egress_rules ? toset(data.aws_ip_ranges.s3.cidr_blocks) : toset([])
   
   description       = "Allow HTTPS traffic to S3 for ECR image layers"
   from_port         = 443         # HTTPS only
